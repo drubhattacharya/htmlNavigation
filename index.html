@@ -3,42 +3,447 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Language Access Index (LAI) — Preparedness Self-Assessment</title>
+  <title>LAI Navigation Dashboard — Preparedness Self‑Assessment</title>
   <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;background:#f7fbff;color:#0b1f33}
-    header{padding:16px 18px;border-bottom:1px solid #dbe6f2;background:#fff}
-    h1{margin:0;font-size:20px}
-    .sub{color:#2f4556;font-size:13px;margin-top:4px}
-    .wrap{max-width:1200px;margin:0 auto;padding:18px}
-    .card{background:#fff;border:1px solid #dbe6f2;border-radius:14px;padding:14px;margin-bottom:12px}
-    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .kpi{border:1px solid #dbe6f2;border-radius:12px;padding:10px}
-    .kpi .label{font-size:12px;color:#2f4556;font-weight:700}
-    .kpi .value{font-size:22px;font-weight:900}
+    :root {
+      --blue:#1f7fd6;
+      --green:#18a76f;
+      --ink:#0b1f33;
+      --muted:#2f4556;
+      --border:rgba(11,31,51,.16);
+      --bg1:#e7f3ff;
+      --bg2:#e7fbf2;
+      --card:#ffffff;
+    }
+    body {
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1100px 520px at 15% 10%, var(--bg1), rgba(255,255,255,0)),
+        radial-gradient(1100px 520px at 85% 20%, var(--bg2), rgba(255,255,255,0)),
+        linear-gradient(180deg, #ffffff, #f7fbff);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    header {
+      padding: 16px 18px 10px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.88);
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+    h1 { margin:0; font-size: 20px; }
+    .sub { margin-top:4px; color: var(--muted); font-size: 13px; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 14px 18px 40px; }
+    .grid { display:grid; gap:12px; }
+    .grid-2 { grid-template-columns: 1.1fr 1fr; }
+    @media (max-width: 960px) { .grid-2 { grid-template-columns:1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(11,31,51,.06);
+      padding: 14px;
+    }
+    .kpis { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+    @media (max-width: 960px) { .kpis { grid-template-columns:1fr; } }
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+    .kpi .label { font-size: 12px; color: var(--muted); font-weight: 800; }
+    .kpi .value { font-size: 22px; font-weight: 900; margin-top: 2px; }
+    .pill {
+      display:inline-block; padding: 2px 10px; border-radius: 999px;
+      background: rgba(31,127,214,.10); border: 1px solid rgba(31,127,214,.22);
+      font-size: 12px; font-weight: 800;
+    }
+    details {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: #fff;
+      margin-top: 10px;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--ink);
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display:none; }
+    .row { display:flex; gap:10px; flex-wrap: wrap; margin-top:10px; }
+    .field { flex: 1 1 320px; border:1px solid var(--border); border-radius: 12px; padding: 10px; }
+    .field label { display:flex; justify-content: space-between; gap:10px; font-weight: 900; font-size: 13px; }
+    .help { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    input[type="range"] { width: 100%; }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      color: var(--ink);
+      background: #fff;
+    }
+    select option { color: var(--ink); background: #fff; }
+    .small { font-size: 12px; color: var(--muted); }
+    table { width:100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid var(--border); padding: 8px; vertical-align: top; }
+    th { background: rgba(31,127,214,.08); text-align: left; }
+    .good { color: var(--green); font-weight: 900; }
+    .warn { color: #d78b00; font-weight: 900; }
+    .bad { color: #d93b3b; font-weight: 900; }
+    .btnbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px; }
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-weight: 900;
+      cursor:pointer;
+    }
+    button.primary { border-color: rgba(31,127,214,.35); background: rgba(31,127,214,.08); }
   </style>
 </head>
 <body>
 <header>
-  <h1>Language Access Index (LAI) — Preparedness Self-Assessment</h1>
-  <div class="sub">Orientation Activity • Adjust inputs to see your LAI readiness pulse</div>
-</header>
-<div class="wrap">
-  <div class="card">
-    <p><b>Instructions:</b> Adjust the inputs across each pillar to reflect your current state.
-    The LAI Pulse updates in real time and reflects overall preparedness.</p>
+  <div class="wrap" style="padding:0 18px;">
+    <h1>Language Access Index (LAI) — Preparedness Self‑Assessment</h1>
+    <div class="sub">10 Pillars • Jan 2026 KPI set • Metric‑aware scoring • LAI % pulse + risk signal</div>
   </div>
-  <div class="card">
-    <div class="kpis">
-      <div class="kpi"><div class="label">LAI Pulse</div><div class="value">—</div></div>
-      <div class="kpi"><div class="label">Risk Signal</div><div class="value">—</div></div>
-      <div class="kpi"><div class="label">Top Opportunities</div><div class="value">—</div></div>
+</header>
+
+<div class="wrap">
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="btnbar">
+        <button class="primary" id="btn_reset">Reset to defaults</button>
+        <button id="btn_expand">Expand all pillars</button>
+        <button id="btn_collapse">Collapse all pillars</button>
+      </div>
+      <div class="small">Adjust the inputs below. Scores update instantly. <b>Gaps</b> are best near 0. Wait‑time/readmission use band scoring.</div>
+      <div id="pillars"></div>
+    </div>
+
+    <div class="card">
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">LAI Pulse</div>
+          <div class="value" id="lai_value">—</div>
+          <div class="small" id="lai_band">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Risk signal</div>
+          <div class="value" id="risk_label">—</div>
+          <div class="small">Based on LAI thresholds</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Top 3 improvement opportunities</div>
+          <div class="small" id="opp_list">—</div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;" id="gauge"></div>
+      <div style="margin-top:10px;" id="bar"></div>
+
+      <details>
+        <summary>Pillar KPI reference (what each input means)</summary>
+        <div style="margin-top:10px;">
+          <table id="kpi_table"></table>
+        </div>
+      </details>
     </div>
   </div>
-  <div class="card">
-    <p>This is the full downloadable HTML shell for the LAI Navigation Dashboard.
-    It is designed for GitHub Pages or Articulate iframe embedding.</p>
-  </div>
 </div>
+
+<script>
+  const METRICS = {"Access": {"m1": {"label": "Interpreter/QBS wait time in ED (minutes)", "input": "band", "units": "min", "bands": [["Under 10 min (ideal)", 100], ["10\u201315 min", 80], ["15\u201320 min", 60], ["20\u201325 min", 40], [">25 min", 20]], "default": "15\u201320 min"}, "m2": {"label": "Physician language alignment with LEP population in service area", "input": "percent", "units": "%", "default": 50.0}, "weights": [0.6, 0.4]}, "Patient Experience": {"m1": {"label": "HCAHPS gap: providers explain clearly (LEP vs non-LEP)", "input": "gap_band", "units": "pp", "bands": [[2, 100], [5, 80], [10, 60], [15, 40], [1000000000.0, 20]], "default": 8.0}, "m2": {"label": "HCAHPS gap: understanding treatment regimen (LEP vs non-LEP)", "input": "gap_band", "units": "pp", "bands": [[2, 100], [5, 80], [10, 60], [15, 40], [1000000000.0, 20]], "default": 10.0}, "weights": [0.5, 0.5]}, "Outcomes": {"m1": {"label": "LEP patients with prescriptions written AND filled", "input": "percent", "units": "%", "default": 70.0}, "m2": {"label": "LEP patients receiving recommended preventive services", "input": "percent", "units": "%", "default": 60.0}, "weights": [0.5, 0.5]}, "Compliance": {"m1": {"label": "LEP patients with interpreter access at required clinical touchpoints", "input": "percent", "units": "%", "default": 75.0}, "m2": {"label": "LEP encounters with documented interpreter/QBS use (excluding waivers)", "input": "percent", "units": "%", "default": 70.0}, "weights": [0.5, 0.5]}, "Patient Engagement": {"m1": {"label": "LEP patients who received teach-back", "input": "percent", "units": "%", "default": 40.0}, "m2": {"label": "LEP post-visit follow-up reached (auto + manual if needed)", "input": "percent", "units": "%", "default": 55.0}, "weights": [0.5, 0.5]}, "Financial Stewardship": {"m1": {"label": "System cost savings from best practices (annual)", "input": "dollars", "units": "$", "cap": 5000000.0, "default": 750000.0}, "m2": {"label": "Hospital savings from reduced LOS among LEP patients (annual, per hospital)", "input": "dollars", "units": "$", "cap": 1500000.0, "default": 250000.0}, "weights": [0.55, 0.45]}, "Quality and Safety": {"m1": {"label": "30-day readmission rate for LEP patients", "input": "band", "units": "%", "bands": [["Under 10% (ideal)", 100], ["10\u201315%", 80], ["15\u201320%", 60], ["20\u201325%", 40], [">25%", 20]], "default": "15\u201320%"}, "m2": {"label": "Gap in physical harm from adverse events (LEP vs non-LEP)", "input": "gap_band", "units": "pp", "bands": [[0.5, 100], [1.0, 80], [2.0, 60], [3.0, 40], [1000000000.0, 20]], "default": 1.5}, "weights": [0.55, 0.45]}, "Workforce Development": {"m1": {"label": "Staff trained in language access policy & preferred modality", "input": "percent", "units": "%", "default": 65.0}, "m2": {"label": "Providers who are Qualified Bilingual Staff (QBS) or enrolled in QBS training", "input": "percent", "units": "%", "default": 20.0}, "weights": [0.5, 0.5]}, "Workflow Optimization": {"m1": {"label": "LEP touchpoints with documented interpreter/QBS use (7-touchpoint workflow)", "input": "percent", "units": "%", "default": 55.0}, "m2": {"label": "Safety preparedness to minimize risk of harm for LEP patients", "input": "likert", "units": "level", "default": 3}, "weights": [0.55, 0.45]}, "Technology Innovation": {"m1": {"label": "Departments with tablets supporting VRI + audio interpreter modalities", "input": "percent", "units": "%", "default": 60.0}, "m2": {"label": "Departments using tech-enabled documentation & automation (EMR doc, automated teach-back, etc.)", "input": "percent", "units": "%", "default": 45.0}, "weights": [0.5, 0.5]}};
+  const PILLAR_ORDER = ["Access", "Patient Experience", "Outcomes", "Compliance", "Patient Engagement", "Financial Stewardship", "Quality and Safety", "Workforce Development", "Workflow Optimization", "Technology Innovation"];
+
+  function clamp(x, lo=0, hi=100) { return Math.max(lo, Math.min(hi, x)); }
+  function scorePercent(p) { return clamp(p,0,100); }
+  function scoreGapAbs(g, bands) {
+    const a = Math.abs(g);
+    for (const [u,s] of bands) { if (a <= u) return clamp(s,0,100); }
+    return clamp(bands[bands.length-1][1],0,100);
+  }
+  function scoreDollars(v, cap) {
+    v = Math.max(0, Number(v)||0);
+    cap = Math.max(1, Number(cap)||1);
+    return clamp((Math.log1p(v)/Math.log1p(cap))*100,0,100);
+  }
+  function scoreLikert(v, min=1, max=5) {
+    v = Number(v)||min;
+    return clamp(((v-min)/Math.max(1,(max-min)))*100,0,100);
+  }
+  function readinessBand(lai) {
+    if (lai >= 80) return ["High readiness","Lower risk","good"];
+    if (lai >= 60) return ["Moderate readiness","Moderate risk","warn"];
+    return ["Low readiness","Higher risk","bad"];
+  }
+
+  const pillarsDiv = document.getElementById("pillars");
+
+  function makeField(pillar, key, spec) {
+    const id = `${pillar}__${key}`;
+    const field = document.createElement("div");
+    field.className = "field";
+
+    const label = document.createElement("label");
+    const left = document.createElement("span");
+    left.textContent = spec.label;
+    const right = document.createElement("span");
+    right.className = "pill";
+    right.textContent = spec.units || "";
+    label.appendChild(left);
+    label.appendChild(right);
+
+    const help = document.createElement("div");
+    help.className = "help";
+
+    let inputEl;
+    if (spec.input === "percent") {
+      inputEl = document.createElement("input");
+      inputEl.type = "range"; inputEl.min = 0; inputEl.max = 100; inputEl.step = 1;
+      inputEl.value = spec.default ?? 50;
+      help.textContent = "Percent (higher is better).";
+    } else if (spec.input === "band") {
+      inputEl = document.createElement("select");
+      for (const [opt,_] of spec.bands) {
+        const o = document.createElement("option");
+        o.value = opt; o.textContent = opt;
+        inputEl.appendChild(o);
+      }
+      inputEl.value = spec.default ?? spec.bands[0][0];
+      help.textContent = "Banded performance (best at top).";
+    } else if (spec.input === "gap_band") {
+      inputEl = document.createElement("input");
+      inputEl.type = "number"; inputEl.min = 0; inputEl.max = 50; inputEl.step = 0.5;
+      inputEl.value = spec.default ?? 5;
+      help.textContent = "Absolute gap (pp). Lower is better (aim for 0).";
+    } else if (spec.input === "dollars") {
+      inputEl = document.createElement("input");
+      inputEl.type = "number"; inputEl.min = 0; inputEl.max = spec.cap ?? 1000000; inputEl.step = 25000;
+      inputEl.value = spec.default ?? 0;
+      help.textContent = `Annual dollars. Scaled 0–100 (cap $${Number(spec.cap||0).toLocaleString()}).`;
+    } else if (spec.input === "likert") {
+      inputEl = document.createElement("select");
+      [1,2,3,4,5].forEach(v => {
+        const o = document.createElement("option");
+        o.value = v; o.textContent = String(v);
+        inputEl.appendChild(o);
+      });
+      inputEl.value = spec.default ?? 3;
+      help.textContent = "Operational readiness (1=low, 5=high).";
+    } else {
+      inputEl = document.createElement("input");
+      inputEl.type = "range"; inputEl.min = 0; inputEl.max = 100; inputEl.step = 1;
+      inputEl.value = spec.default ?? 50;
+      help.textContent = "Percent (higher is better).";
+    }
+
+    inputEl.id = id;
+    inputEl.addEventListener("input", updateAll);
+    inputEl.addEventListener("change", updateAll);
+
+    const val = document.createElement("div");
+    val.className = "small";
+    val.style.marginTop = "6px";
+    val.id = id + "__val";
+
+    field.appendChild(label);
+    field.appendChild(inputEl);
+    field.appendChild(val);
+    field.appendChild(help);
+    return field;
+  }
+
+  function buildPillars() {
+    pillarsDiv.innerHTML = "";
+    for (const pillar of PILLAR_ORDER) {
+      const d = document.createElement("details");
+      d.open = (pillar === "Access");
+      const s = document.createElement("summary");
+      s.innerHTML = `${pillar} <span class="small" id="score_${pillar}"></span>`;
+      d.appendChild(s);
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.appendChild(makeField(pillar, "m1", METRICS[pillar].m1));
+      row.appendChild(makeField(pillar, "m2", METRICS[pillar].m2));
+      d.appendChild(row);
+
+      pillarsDiv.appendChild(d);
+    }
+  }
+
+  function getRaw(pillar, key, spec) {
+    const el = document.getElementById(`${pillar}__${key}`);
+    if (!el) return spec.default;
+    if (spec.input === "band") return el.value;
+    return Number(el.value);
+  }
+
+  function scoreMetric(spec, raw) {
+    if (spec.input === "percent") return scorePercent(raw);
+    if (spec.input === "band") {
+      const map = new Map(spec.bands);
+      return clamp(map.get(raw) ?? 0, 0, 100);
+    }
+    if (spec.input === "gap_band") return scoreGapAbs(raw, spec.bands);
+    if (spec.input === "dollars") return scoreDollars(raw, spec.cap ?? 1000000);
+    if (spec.input === "likert") return scoreLikert(raw, 1, 5);
+    return scorePercent(raw);
+  }
+
+  function compute() {
+    const pillarScores = {};
+
+    for (const pillar of PILLAR_ORDER) {
+      const w = METRICS[pillar].weights;
+      const m1 = METRICS[pillar].m1;
+      const m2 = METRICS[pillar].m2;
+
+      const m1_raw = getRaw(pillar, "m1", m1);
+      const m2_raw = getRaw(pillar, "m2", m2);
+
+      const m1_score = scoreMetric(m1, m1_raw);
+      const m2_score = scoreMetric(m2, m2_raw);
+
+      const pscore = clamp((w[0] * m1_score) + (w[1] * m2_score), 0, 100);
+      pillarScores[pillar] = pscore;
+
+      const val1 = document.getElementById(`${pillar}__m1__val`);
+      const val2 = document.getElementById(`${pillar}__m2__val`);
+      if (val1) {
+        val1.textContent = (m1.input === "band")
+          ? `Selected: ${m1_raw} → score ${m1_score.toFixed(0)}/100`
+          : `Value: ${m1_raw} ${m1.units || ""} → score ${m1_score.toFixed(0)}/100`;
+      }
+      if (val2) {
+        val2.textContent = (m2.input === "band")
+          ? `Selected: ${m2_raw} → score ${m2_score.toFixed(0)}/100`
+          : `Value: ${m2_raw} ${m2.units || ""} → score ${m2_score.toFixed(0)}/100`;
+      }
+
+      const sc = document.getElementById(`score_${pillar}`);
+      if (sc) sc.textContent = ` — ${pscore.toFixed(0)}/100`;
+    }
+
+    const lai = Object.values(pillarScores).reduce((a,b)=>a+b,0) / Math.max(1, Object.keys(pillarScores).length);
+    return { lai, pillarScores };
+  }
+
+  function renderKpiTable() {
+    const t = document.getElementById("kpi_table");
+    if (!t) return;
+
+    let html = "<thead><tr><th>Pillar</th><th>Metric 1</th><th>Scale</th><th>Weight</th><th>Metric 2</th><th>Scale</th><th>Weight</th></tr></thead><tbody>";
+    for (const pillar of PILLAR_ORDER) {
+      const m1 = METRICS[pillar].m1;
+      const m2 = METRICS[pillar].m2;
+      const w = METRICS[pillar].weights;
+      html += `<tr>
+        <td><b>${pillar}</b></td>
+        <td>${m1.label} <span class="pill">${m1.units||""}</span></td>
+        <td>${m1.input}</td>
+        <td>${w[0]}</td>
+        <td>${m2.label} <span class="pill">${m2.units||""}</span></td>
+        <td>${m2.input}</td>
+        <td>${w[1]}</td>
+      </tr>`;
+    }
+    html += "</tbody>";
+    t.innerHTML = html;
+  }
+
+  function renderCharts(lai, pillarScores) {
+    Plotly.newPlot("gauge", [{
+      type: "indicator",
+      mode: "gauge+number",
+      value: lai,
+      title: { text: "LAI Pulse (%)" },
+      gauge: {
+        axis: { range: [0, 100] },
+        bar: { thickness: 0.25, color: "rgba(31,127,214,0.75)" },
+        steps: [
+          { range: [0, 40], color: "rgba(200,200,200,0.55)" },
+          { range: [40, 70], color: "rgba(200,200,200,0.35)" },
+          { range: [70, 100], color: "rgba(200,200,200,0.20)" }
+        ]
+      }
+    }], {
+      height: 260,
+      margin: { l: 20, r: 20, t: 40, b: 20 },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)"
+    }, {displayModeBar:false});
+
+    const x = PILLAR_ORDER;
+    const y = x.map(p => pillarScores[p]);
+    Plotly.newPlot("bar", [{
+      type: "bar", x, y,
+      marker: { color: "rgba(24,167,111,0.55)" }
+    }], {
+      height: 360,
+      margin: { l: 40, r: 20, t: 10, b: 100 },
+      xaxis: { tickangle: 30 },
+      yaxis: { range: [0, 100], title: "Score (0–100)" },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)"
+    }, {displayModeBar:false});
+  }
+
+  function updateAll() {
+    const { lai, pillarScores } = compute();
+    const [band, risk, cls] = readinessBand(lai);
+
+    document.getElementById("lai_value").textContent = `${lai.toFixed(0)}/100`;
+    const b = document.getElementById("lai_band");
+    b.textContent = band;
+    b.className = cls;
+
+    const r = document.getElementById("risk_label");
+    r.textContent = risk;
+    r.className = cls;
+
+    const opp = Object.entries(pillarScores).sort((a,b)=>a[1]-b[1]).slice(0,3);
+    document.getElementById("opp_list").innerHTML = opp.map(([p,s]) => `• ${p}: ${s.toFixed(0)}/100`).join("<br>");
+
+    renderCharts(lai, pillarScores);
+  }
+
+  function resetDefaults() {
+    for (const pillar of PILLAR_ORDER) {
+      for (const key of ["m1","m2"]) {
+        const spec = METRICS[pillar][key];
+        const el = document.getElementById(`${pillar}__${key}`);
+        if (!el) continue;
+        if (spec.input === "band") el.value = spec.default ?? spec.bands[0][0];
+        else if (spec.input === "likert") el.value = spec.default ?? 3;
+        else el.value = spec.default ?? 50;
+      }
+    }
+    updateAll();
+  }
+
+  function setAll(open) {
+    document.querySelectorAll("#pillars details").forEach(d => d.open = open);
+  }
+
+  // Boot
+  buildPillars();
+  renderKpiTable();
+  updateAll();
+
+  document.getElementById("btn_reset").addEventListener("click", resetDefaults);
+  document.getElementById("btn_expand").addEventListener("click", ()=>setAll(true));
+  document.getElementById("btn_collapse").addEventListener("click", ()=>setAll(false));
+</script>
 </body>
 </html>
